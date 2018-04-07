@@ -90,6 +90,8 @@ void Painter::setter(char command, GLdouble x, GLdouble y, GLdouble z) {
 		scale[1] = y;
 		scale[2] = z;
 			break;
+	case'n':
+		break;
 	default:
 		break;
 	}
@@ -129,6 +131,8 @@ GLdouble Painter::getter(char command, char axis) {
 		temp1 = "scale";
 		result = scale[tempAxis];
 		break;
+	case'n':
+		return -403;
 	default:
 		cout << "error: there is no command for char \nin getter, the current command is "<<command << endl;
 		return -404;

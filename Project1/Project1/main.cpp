@@ -65,7 +65,7 @@ static double view_w = 20, view_h = 20, view_d = 90;
 
 //values for w, e, r command
 static char command = 'n';
-
+static double cx, cy, cz;
 //key inputs
 void keyInput(unsigned char key, int x, int y) {
 	switch (key)
@@ -83,7 +83,15 @@ void keyInput(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case'r':
-		command = 'r';
+		command = 'n';
+		glutPostRedisplay();
+		break;
+	case'a':
+		cy = cy + 1;
+		glutPostRedisplay();
+		break;
+	case'd':
+		cy = cy - 1;
 		glutPostRedisplay();
 		break;
 	//end of translation, rotation, scale
@@ -94,7 +102,13 @@ void keyInput(unsigned char key, int x, int y) {
 
 //print interaction to the console (i dont think i need this for actual build)
 void printInteraction(void) {
-
+	cout << "welcome to my CAD 0.1 version" << endl;
+	cout << "press 'w' for position transform." << endl;
+	cout << "press 'e' for rotation transform." << endl;
+	cout << "press 'r' for rescaling (does not work ATM)" <<endl;
+	
+	cout << "press 'a' and 'd' to adjust the y value of the transform you picked" << endl;
+	cout << "future versions will have more functions" << endl;
 }
 
 void setup(void) {
@@ -108,18 +122,30 @@ void resize(int w, int h)
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
+	gluPerspective(120, 1, 0.9, 100);
+	//glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
 	//reset();
 	//setProjection();
 
-	//glMatrixMode(GL_MODELVIEW);
+	glMatrixMode(GL_MODELVIEW);
 }
+
 void drawSceneSmall() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	Painter a;
 	glColor3f(1, 0, 0);
-	a.paintIt(3);
+	glLoadIdentity();
+	gluLookAt(0.0, 0.0, -2.4, 
+		0, 0, 0, 
+		0, 1, 0);
+	//note for prof. Baruch:
+	//this is the line that does not work
+	// a.paintIt(glutSolidCube(1));
+	
+	a.setter(command, cx, cy, cz);
+	//what the result should be:
+	a.paintIt(1);
 	
 	glDisable(GL_DEPTH_TEST);
 }
