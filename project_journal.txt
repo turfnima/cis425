@@ -1,0 +1,11 @@
+april 07 2018:
+problems:
+i got the setter, getter for the rotation, translation, scale of a object.
+but I can't figure out how to paint an abstract object at a known location.
+
+That is, if I have an object that could be anything (a cylinder, a cube, or the combination of a cylinder and a cube), and I want to paint this  object at( 1, 0,0)
+how would I do that with a function call?
+
+I experimented with "function pointers", however I couldn't figure out because I don't know how to call that function.
+
+if I get pass this then I would be able to transform any object that passed on using functions.
