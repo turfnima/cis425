@@ -59,7 +59,7 @@ public:
 //prototypes
 	void setter(char command, GLdouble x, GLdouble y, GLdouble z);
 	GLdouble getter(char command, char axis);
-	void paintIt( void *func_name);
+	void paintIt(void *func(void));
 	void paintIt(int size);
 	//destructor
 	~Painter() {}
@@ -137,25 +137,25 @@ GLdouble Painter::getter(char command, char axis) {
 		cout << "error: there is no command for char \nin getter, the current command is "<<command << endl;
 		return -404;
 	}
-	printf("getter the value type is %s at %s axis\n", temp1, axis);
+	printf("getter the value type is %s at %d axis\n", temp1, axis);
 	cout << "getter: the value  is " << result << endl;
 	return result;
 }
 //never used *func_name before
 //I am playing with fire.
 //reference:https://www.cprogramming.com/tutorial/function-pointers.html
-void Painter::paintIt( void *func_name) {
+void Painter:: paintIt(void *func(void)) {
 	//load in all the x,y,z for this object and tranlated, rotate, scale it.
 	glPushMatrix();
 	glScalef(this->scale[0], this->scale[1], this->scale[2]);
 	glRotatef(this->rotation[2], 0, 0, 1);
 	glRotatef(this->rotation[1], 0, 1, 0);
 	glRotatef(this->rotation[0], 1, 0, 0);
-	glTranslatef(this->position[0],this->position[1],this->position[2]);
+	glTranslatef(this->position[0], this->position[1], this->position[2]);
 	//I should have an exception handler here, 
 	//but I don't know how to tell the difference of functions yet
 	//save that for next versions.
-	func_name;
+	func();
 	glPopMatrix();
 }
 

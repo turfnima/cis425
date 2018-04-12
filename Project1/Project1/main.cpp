@@ -145,7 +145,8 @@ void drawSceneSmall() {
 	
 	a.setter(command, cx, cy, cz);
 	//what the result should be:
-	a.paintIt(1);
+	//a.paintIt(glutSolidCube(1));
+	//a.paintIt(1);
 	
 	glDisable(GL_DEPTH_TEST);
 }
