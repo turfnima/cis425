@@ -23,5 +23,8 @@
     <ClInclude Include="painter.h">
       <Filter>资源文件</Filter>
     </ClInclude>
+    <ClInclude Include="fileRead.h">
+      <Filter>资源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -37,7 +37,7 @@ grid at center:
 //vector for vector
 #include <cstdlib>
 #include <vector>
-
+#include<iterator>
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
 #else
@@ -63,9 +63,16 @@ static double window_position_x = 100, window_position_y = 100;
 //values for ortho view
 static double view_w = 20, view_h = 20, view_d = 90;
 
+//lists of objects for printing
+vector<myObj> paintPipe;
+vector<myObj>::iterator it1;
+myObj *a = new myObj("cube");
+myObj *b = new myObj("sphere");
+bool load = false;
 //values for w, e, r command
 static char command = 'n';
 static double cx, cy, cz;
+//vector <Painter> listObj;
 //key inputs
 void keyInput(unsigned char key, int x, int y) {
 	switch (key)
@@ -87,11 +94,11 @@ void keyInput(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case'a':
-		cy = cy + 1;
+		cx = cx+0.5;
 		glutPostRedisplay();
 		break;
 	case'd':
-		cy = cy - 1;
+		cx = cx-0.5;
 		glutPostRedisplay();
 		break;
 	//end of translation, rotation, scale
@@ -99,6 +106,8 @@ void keyInput(unsigned char key, int x, int y) {
 		break;
 	}
 }
+
+
 
 //print interaction to the console (i dont think i need this for actual build)
 void printInteraction(void) {
@@ -126,28 +135,72 @@ void resize(int w, int h)
 	//glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
 	//reset();
 	//setProjection();
-
+	
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void drawSceneSmall() {
+//load the objects into paintPipe
+void loadObj() {
+	paintPipe.push_back((*b));
+	paintPipe.push_back((*a));
+	load = true;
+}
+
+void drawSceneTest() {
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	Painter a;
+
 	glColor3f(1, 0, 0);
+	cout << cx << " " <<cy<< " " << cz<<" " << endl;
+	
 	glLoadIdentity();
-	gluLookAt(0.0, 0.0, -2.4, 
-		0, 0, 0, 
+	gluLookAt(0.0, 0.0, -2.4,
+		0, 0, 0,
 		0, 1, 0);
-	//note for prof. Baruch:
-	//this is the line that does not work
-	// a.paintIt(glutSolidCube(1));
+
+	glDisable(GL_DEPTH_TEST);
+}
+void paintIt(myObj  ob) {
+	glPushMatrix();
+	glColor3f(ob.color[0], ob.color[1], ob.color[2]);
+	glScalef(ob.scale[0], ob.scale[1], ob.scale[2]);
+	glRotatef(ob.rotation[2], 0, 0, 1);
+	glRotatef(ob.rotation[1], 0, 1, 0);
+	glRotatef(ob.rotation[0], 1, 0, 0);
+	glTranslatef(ob.position[0], ob.position[1], ob.position[2]);
+	//I should have an exception handler here, 
+	//but I don't know how to tell the difference of functions yet
+	//save that for next versions.
+	if (ob.shape == "cube") {
+		cout << "cube" << endl;
+		glutSolidCube(1);
+	}
+	else if (ob.shape == "sphere") {
+		cout << "sphere" << endl;
+		glutSolidSphere(1, 15, 15);
+	}
+	glPopMatrix();
+}
+
+void drawSceneSmall() {
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
 	
-	a.setter(command, cx, cy, cz);
-	//what the result should be:
-	//a.paintIt(glutSolidCube(1));
-	//a.paintIt(1);
+	it1 = paintPipe.begin();
+	while ( it1 != paintPipe.end()) {
+	paintIt(*it1);
 	
+	it1++;
+}
+	glLoadIdentity();
+	paintPipe[0].setter('w', -1, -1, 0);
+	paintPipe[1].setter('w', 1, 1, 0);
+	cout<<paintPipe[0].tostring();
+	gluLookAt(0.0, 0.0, -2.4,
+		0, 0, 0,
+		0, 1, 0);
 	glDisable(GL_DEPTH_TEST);
 }
 void drawScene() {
@@ -160,7 +213,7 @@ int main(int argc, char **argv) {
 	printInteraction();
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-
+	if (!load) loadObj();
 	//window
 	glutInitWindowSize(window_w, window_h);
 	glutInitWindowPosition(window_position_x, window_position_y);

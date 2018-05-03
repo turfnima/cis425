@@ -11,10 +11,12 @@ https://www.cprogramming.com/tutorial/function-pointers.html
 #define __PAINTER_H_INCLUDED__
 #include <cstdlib>
 #include <vector>
+
 //includes any dependencies.
 #include <iostream>
+#include<stdio.h>
 #include <cmath>
-
+#include<string>
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
 #else
@@ -24,10 +26,11 @@ https://www.cprogramming.com/tutorial/function-pointers.html
 //
 using namespace std;
 
-class Painter {
+//my own obj type
+class myObj{
 public:
-	//attributes
-	// position x y and z is the position we paint  this object at.(x,y,z)
+	string shape;
+	 //position x y and z is the position we paint  this object at.(x,y,z)
 	GLdouble position[3];
 	// rotation x y and z is the degree of angle that rotates around this axis.
 	//for example rotaionx=90 means rotate 90 degress around x angle
@@ -37,9 +40,31 @@ public:
 	GLdouble scale[3];
 	//default color, any object with color setting will not be effected
 	GLdouble color[3];
-	//
-	Painter() {
-		//initialize for any object we paint.
+	//constructor
+	//default shape is cube (just for preventing erros)
+	myObj() {
+		shape = "cube";
+				position[0] = 0;
+				position[1] = 0;
+				position[2] = 0;
+		
+				rotation[0] = 0;
+				rotation[1] = 0;
+				rotation[2] = 0;
+		
+				scale[0] = 1;
+				scale[1] = 1;
+				scale[2] = 1;
+		
+				color[0] = 1.0;
+				color[1] = 0.0;
+				color[2] = 0.0;
+	}
+	//set the shape of object
+	myObj(string s) {
+		//error prevention
+		if (s != "cube" || s != "cylinder" || s != "cuboid" || s != "sphere") shape = "cube";
+		shape = s;
 		position[0] = 0;
 		position[1] = 0;
 		position[2] = 0;
@@ -56,121 +81,69 @@ public:
 		color[1] = 0.0;
 		color[2] = 0.0;
 	}
-//prototypes
-	void setter(char command, GLdouble x, GLdouble y, GLdouble z);
-	GLdouble getter(char command, char axis);
-	void paintIt(void *func(void));
-	void paintIt(int size);
-	//destructor
-	~Painter() {}
-};
-
-
-//change values
-// there are three command, 'w' means location, 'e' means rotation
-//'r' means rescale, 
-//this idea is taken from 3d studio ma[0] and unity3d (sort of common setting)
-void Painter::setter(char command, GLdouble x, GLdouble y, GLdouble z) {
-
-	switch (command)
-	{
-	case'w':
-		position[0] = x;
-		position[1] = y;
-		position[2] = z;
-		break;
-	case'e':
-		rotation[0] = x;
-		rotation[1] = y;
-		rotation[2] = z;
-		break;
-	case'r':
-		//resize can have weird things, because resizing something to negative is funny.
-		scale[0] = x;
-		scale[1] = y;
-		scale[2] = z;
-			break;
-	case'n':
-		break;
-	default:
-		break;
-	}
-}
-//take the 'w', 'e','r', command, and 'x', 'y', 'z', axis, and
-//return the value.
-GLdouble Painter::getter(char command, char axis) {
-	string temp1 = "";
+	~myObj() {};
+	//the object paints itself according to the position
+	//rotation, and scale
 	
-	int tempAxis = -1;
-	GLdouble result;
 
-	switch (axis) {
-	case'x':
-		tempAxis = 0;
-		break;
-	case'y':
-		tempAxis = 1;
-		break;
-	case'z':
-		tempAxis = 2;
-		break;
-	default:
-		cout << "error in painter::getter: the axis is unclear" << endl;
-		break;
+	void setter(char command, GLdouble x, GLdouble y, GLdouble z) {
+		//cout << "setter called" << endl;
+		switch (command)
+		{
+		case'w':
+			position[0] = x;
+			position[1] = y;
+			position[2] = z;
+			//cout << "positions: " << position[0] << " " << position[1] << " " << position[3] << endl;
+			break;
+		case'e':
+			rotation[0] = x;
+			rotation[1] = y;
+			rotation[2] = z;
+			break;
+		case'r':
+			//resize can have weird things, because resizing something to negative is funny.
+			scale[0] = x;
+			scale[1] = y;
+			scale[2] = z;
+			break;
+		case'n':
+			break;
+		default:
+			break;
+		}
 	}
-	switch (command) {
-	case'w':
-		temp1 = "position";
-		result = position[tempAxis];
-		break;
-	case'e':
-		temp1 = "rotation";
-		result = rotation[tempAxis];
-		break;
-	case'r':
-		temp1 = "scale";
-		result = scale[tempAxis];
-		break;
-	case'n':
-		return -403;
-	default:
-		cout << "error: there is no command for char \nin getter, the current command is "<<command << endl;
-		return -404;
-	}
-	printf("getter the value type is %s at %d axis\n", temp1, axis);
-	cout << "getter: the value  is " << result << endl;
-	return result;
-}
-//never used *func_name before
-//I am playing with fire.
-//reference:https://www.cprogramming.com/tutorial/function-pointers.html
-void Painter:: paintIt(void *func(void)) {
-	//load in all the x,y,z for this object and tranlated, rotate, scale it.
-	glPushMatrix();
-	glScalef(this->scale[0], this->scale[1], this->scale[2]);
-	glRotatef(this->rotation[2], 0, 0, 1);
-	glRotatef(this->rotation[1], 0, 1, 0);
-	glRotatef(this->rotation[0], 1, 0, 0);
-	glTranslatef(this->position[0], this->position[1], this->position[2]);
-	//I should have an exception handler here, 
-	//but I don't know how to tell the difference of functions yet
-	//save that for next versions.
-	func();
-	glPopMatrix();
-}
 
-void Painter::paintIt(int size) {
-	//load in all the x,y,z for this object and tranlated, rotate, scale it.
-	glPushMatrix();
-	glScalef(this->scale[0], this->scale[1], this->scale[2]);
-	glRotatef(this->rotation[2], 0, 0, 1);
-	glRotatef(this->rotation[1], 0, 1, 0);
-	glRotatef(this->rotation[0], 1, 0, 0);
-	glTranslatef(this->position[0], this->position[1], this->position[2]);
-	//I should have an exception handler here, 
-	//but I don't know how to tell the difference of functions yet
-	//save that for next versions.
-	glutSolidCube(size);
-	glPopMatrix();
-}
+	//this outputs my shape, position, rotation, and scale, and color
+	//i can use this to out put to a file.
+	string tostring() {
+		string ans="";
+		string line[5];
+		//reference:
+		//http://www.cplusplus.com/reference/cstdio/sprintf/
+		//sprintf buffer
+		//why did I waste time on this?
+		char *buf = new char[50];
+		line[0] = "shape: " + shape + "\n" + "position: ";
+
+		sprintf(buf, "position: %1.2f %1.2f %1.2f \n", double(position[0]), double(position[1]), double(position[2]));
+		line[1]= std::string(std::move(buf));
+		
+		sprintf(buf, "rotation: %1.2f %1.2f %1.2f \n", double(rotation[0]), double(rotation[1]), double(rotation[2]));
+		line[2] = std::string(std::move(buf));
+
+		sprintf(buf, "scale: %1.2f %1.2f %1.2f \n", double(scale[0]), double(scale[1]), double(scale[2]));
+		line[3] = std::string(std::move(buf));
+
+		sprintf(buf, "color: %1.2f %1.2f %1.2f \n", double(color[0]), double(color[1]), double(color[2]));
+		line[4] = std::string(std::move(buf));
+
+		ans = line[0] + line[1] + line[2] + line[3] + line[4];
+		return ans;
+	}
+};
+	
+
+
+
 #endif
