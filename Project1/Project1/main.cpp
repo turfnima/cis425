@@ -55,7 +55,7 @@ void printInteraction(void);
 void setup(void);
 void drawScene();
 void drawSceneSmall();
-
+void addMoreObject(char shape);
 
 //values for window
 static double window_w = 800, window_h = 800;
@@ -69,22 +69,39 @@ vector<myObj> paintPipe;
 vector<myObj>::iterator it1;
 myObj *a = new myObj("cube");
 myObj *b = new myObj("sphere");
-bool load = false;
+static bool load = false;
 
 //select and drag
 //closest hit
 //from BallAndTorusPicking
-int closestName;
+static int closestName;
 static unsigned int buffer[1024]; // Hit buffer.
 static int hits; // Number of entries in hit buffer.
-bool isSelecting = false;
-int isDragging = 0;
-bool ortho = false;
+static bool isSelecting = false;
+static int isDragging = 0;
+//toggle ortho?
+ bool ortho = false;
 
+//for mouse drag:
+int mousex, mousey;
+
+//if is trs, then we lock the selection, thus we can do translate
+//if not trs, then we shouldn't do any translate
+static bool istrs = false;
+
+//fix view, 0=front perspective, 1=top ortho, 2=left ortho,
+static int fixView = 0;
 //values for w, e, r command
 static char command = 'n';
 static double cx, cy, cz;
-//vector <Painter> listObj;
+
+
+//values for view angle:
+//top:
+static double top_up_x = 0, top_up_z = 1;
+static double top_eye_y = 10;
+
+
 //key inputs
 void keyInput(unsigned char key, int x, int y) {
 	switch (key)
@@ -93,30 +110,53 @@ void keyInput(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 		//basic translation, rotation, scale
+	case 'p':
+		ortho = !ortho;
+		cout << ortho;
+		glutSwapBuffers();
+		break;
 	case 'w':
-		command = 'w';
-		glutPostRedisplay();
+		if (command == key) command = 'n';
+		else command = key;
 		break;
 	case'e':
-		command = 'e';
-		glutPostRedisplay();
+		if (command == key) command = 'n';
+		else command = key;
 		break;
 	case'r':
-		command = 'n';
-		glutPostRedisplay();
+		if (command == key) command = 'n';
+		else command = key;
 		break;
 	case'a':
 		cx = cx + 0.5;
-		glutPostRedisplay();
 		break;
 	case'd':
-		cx = cx - 0.5;
-		glutPostRedisplay();
+		cx = cx - 0.5;	
+		break;
+	case't':
+		fixView = 1;
+		break;
+	case'q'://unlock select
+		istrs = false;
+		paintPipe[closestName - 1].color[0] = 0.5;
+		paintPipe[closestName - 1].color[1] = 0.5;
+		paintPipe[closestName - 1].color[2] = 0.5;
+		//reset the color
+		break;
+	case'f':
+		fixView = 0;
+		break;
+	case'l':
+		fixView = 0;
+		break;
+	case'+':
+		addMoreObject('4');
 		break;
 		//end of translation, rotation, scale
 	default:
 		break;
 	}
+	glutPostRedisplay();
 }
 
 //for select and drag
@@ -150,8 +190,10 @@ void pickFunction(int button, int state, int x, int y)
 {
 	int viewport[4]; // Viewport data.
 
+	if (istrs)
+		return;
 					 // Don't react unless left button is pressed.
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
 		glGetIntegerv(GL_VIEWPORT, viewport); // Get viewport data.
 		glSelectBuffer(1024, buffer); // Specify buffer to write hit records in selection mode
@@ -164,15 +206,16 @@ void pickFunction(int button, int state, int x, int y)
 
 		// Define a viewing volume corresponding to selecting in 2 x 2 region around the cursor.
 		glLoadIdentity();
-		gluPickMatrix((float)x, (float)(viewport[3] - y), 3.0, 3.0, viewport);
-		cout << "x= " << x << "  y= " << y << endl;
+		gluPickMatrix((float)x, (float)(viewport[3] - y), 1.0, 1.0, viewport);
+		//cout << "x= " << x << "  y= " << y << endl;
 		//real projection used, copied from setProjection
 		//DON'T load identity here
-		if (ortho)
-			glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
+		if (ortho) {
+				glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
+
+		}
 		else
 			gluPerspective(120.0, double(window_w) / double(window_h), 1, 300);
-
 
 
 		glMatrixMode(GL_MODELVIEW); // Return to modelview mode before drawing.
@@ -191,10 +234,16 @@ void pickFunction(int button, int state, int x, int y)
 										// closest object name will be saved in closestName.
 		findClosestHit(hits, buffer);
 
-		//if red cube was hit, start dragging.
-		if (closestName >0) //clicked on red cube
-			isDragging = closestName;
-
+		if (closestName > 0)//automatically lock my selection
+		{
+			istrs = true;
+			paintPipe[closestName - 1].color[0] = 1.0;
+			paintPipe[closestName - 1].color[1] = 0;
+			paintPipe[closestName - 1].color[2] = 0;
+		}
+		mousex = x;
+		mousey = y;
+		cout << mousex << " ." << mousey << endl;
 		cout << "closest hit==" << closestName << endl;
 		// -------------- - END OF Selecting--------------
 
@@ -206,21 +255,39 @@ void pickFunction(int button, int state, int x, int y)
 
 		glutPostRedisplay();
 	}
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-	{
-		isDragging = 0;
-	}
+
 }
 
-//void sePerspective(void) {
-//	//view box
-//	glMatrixMode(GL_PROJECTION);
-//	glLoadIdentity();
-//	if (ortho)
-//		glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
-//	else
-//		gluPerspective(120.0, double(window_w) / double(window_h), 1, 300);
-//}
+//scale the value
+double scaleValue(double v) {
+	double ans = 1;
+	if (v == 0) return ans;
+	else if (v > 0) ans = v;
+	else if (v < 0) ans = (-1 / v);
+	if (ans <= 0) {
+		cout << "error in scaleValue()" << endl;
+		return 1;
+	}
+	return ans;
+}
+
+//change x y z value of an object
+//depends on the command it has
+void trsObject(char c,double x, double y, double z) {
+	if(istrs)//only possible when object is picked and locked
+	paintPipe[closestName-1].setter(c, x, y, z);
+}
+
+void addMoreObject(char shape) {
+	switch (shape) {
+	case 'c'://cuboid
+		break;
+	default://cube
+		myObj *a = new myObj("cube");
+		break;
+	}
+	paintPipe.push_back(*a);
+}
 
 //print interaction to the console (i dont think i need this for actual build)
 void printInteraction(void) {
@@ -254,12 +321,53 @@ void resize(int w, int h)
 
 	glMatrixMode(GL_MODELVIEW);
 }
+//mouse Motion function
+void mouseMotion(int x, int y)
+{
 
+	int i = closestName - 1;
+	
+	double worldx;
+	double worldy;
+	double worldz;
+	//front view
+	//perspective
+	if(!ortho){
+		worldx = (window_w / 2 - x) * view_w / window_w;
+		worldy = -(y - window_h / 2) / 2 / 2 * view_d / window_h;
+	}
+	//front view
+	//ortho
+	else if (ortho) {
+		worldx = (window_w / 2 - x) *2* view_w / window_w;
+		worldy = -(y - window_h / 2) / 2 * view_d / window_h;
+	}
+
+	if(i>-1){
+	//we are translating the mouse position into world
+		switch (command){
+		case 'w':
+			worldz = paintPipe[i].position[2];
+			paintPipe[i].setter(command, worldx, worldy, worldz);
+			break;
+		}
+	
+	//there are three types of views
+	//for top down view: world x= = (window_w / 2 - x) * 2 * view_w / window_w
+
+	//for front view:
+	
+	
+	glutPostRedisplay();
+	}
+	
+
+} // end mouseMotion
 
 
 //load the objects into paintPipe
 void loadObj() {
-	a->setter('w', 1, 1, -1);
+	a->setter('w', 1, 1, -3);
 	b->setter('w', -1, -1, -1);
 	paintPipe.push_back((*b));
 	paintPipe.push_back((*a));
@@ -272,7 +380,7 @@ void drawSceneTest() {
 	glEnable(GL_DEPTH_TEST);
 
 	glColor3f(1, 0, 0);
-	cout << cx << " " << cy << " " << cz << " " << endl;
+	
 
 	glLoadIdentity();
 
@@ -301,13 +409,42 @@ void paintIt(myObj  ob) {
 	}
 	glPopMatrix();
 }
+void viewSet() {
+	//load identity before look at
+	glLoadIdentity();
+	
+	if (fixView>-1) {
+		switch (fixView) {
+		case 1://top
+			gluLookAt(0, top_eye_y, 0, 0, 0, 0, top_up_x, 0, top_up_z);
+			break;
+		case 0://front
+			gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+			break;
+		case 3://left
+			gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+			break;
+		case 4:
+			break;
+		default:
+			gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+			break;
+		}
+		
+	}
+	else{
+		
+	gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+	}
+}
 
 void drawSceneSmall() {
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	glLoadIdentity();
-	gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+	viewSet();
+	
+	
 	it1 = paintPipe.begin();
 	int i = 1;
 	/*paintPipe[0].setter('w', -1, -1, 0);
@@ -322,7 +459,7 @@ void drawSceneSmall() {
 
 
 	//gluLookAt(meX, meY, meZ, meX + sin(angle*PI / 180), meY + headAngle * PI / 180, meZ + cos(angle*PI / 180), 0, 1, 0);
-	//cout<<paintPipe[0].tostring();
+	//cout<<paintPipe[0].to_string();
 
 	glDisable(GL_DEPTH_TEST);
 
@@ -330,6 +467,13 @@ void drawSceneSmall() {
 
 void drawScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (ortho) 
+		glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
+
+	else
+		gluPerspective(120.0, double(window_w) / double(window_h), 1, 300);
+
+	//cout << "ortho: " << ortho << endl;
 
 	isSelecting = 0;
 	drawSceneSmall();
@@ -359,6 +503,7 @@ int main(int argc, char **argv) {
 
 	glutKeyboardFunc(keyInput);
 	glutMouseFunc(pickFunction);
+	glutMotionFunc(mouseMotion);
 	glutMainLoop();
 	return 0;
 }

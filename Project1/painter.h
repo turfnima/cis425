@@ -56,9 +56,9 @@ public:
 				scale[1] = 1;
 				scale[2] = 1;
 		
-				color[0] = .5;
-				color[1] = .5;
-				color[2] = .5;
+				color[0] = 1.0;
+				color[1] = 0.0;
+				color[2] = 0.0;
 	}
 	//set the shape of object
 	myObj(string s) {
@@ -77,9 +77,9 @@ public:
 		scale[1] = 1;
 		scale[2] = 1;
 
-		color[0] = .5;
-		color[1] = .5;
-		color[2] = .5;
+		color[0] = 1.0;
+		color[1] = 0.0;
+		color[2] = 0.0;
 	}
 	~myObj() {};
 	//the object paints itself according to the position
@@ -114,80 +114,31 @@ public:
 		}
 	}
 
-	void addsetter(char command, GLdouble x, GLdouble y, GLdouble z) {
-		//cout << "setter called" << endl;
-		switch (command)
-		{
-		case'w':
-			position[0] += x;
-			position[1] += y;
-			position[2] += z;
-			//cout << "positions: " << position[0] << " " << position[1] << " " << position[3] << endl;
-			break;
-		case'e':
-			//restrain at the 360 angle
-			for (int i = 0; i < 2; i++)
-				if (rotation[i] >= 360)rotation[i] = rotation[i] - 360;
-			rotation[0] += x;
-			rotation[1] += y;
-			rotation[2] += z;
-			break;
-		case'r':
-			//resize can have weird things, because resizing something to negative is funny.
-			scale[0] = x;
-			scale[1] = y;
-			scale[2] = z;
-			break;
-		case'n':
-			break;
-		default:
-			break;
-		}
-	
-	}
-
-	
-
 	//this outputs my shape, position, rotation, and scale, and color
 	//i can use this to out put to a file.
-	string to_string() {
+	string tostring() {
 		string ans="";
 		string line[5];
 		//reference:
 		//http://www.cplusplus.com/reference/cstdio/sprintf_s/
 		//sprintf_s_s buffer
 		//why did I waste time on this?
-		char *buf = new char[30];
-		line[0] = "shape: " + shape + "\n";
+	/*	char *buf = new char[30];
+		line[0] = "shape: " + shape + "\n" + "position: ";
 
-		// position[0]- int(position[0]) is the decimal part
-		//multiply by 100 and convert to int then I got my 2 decimals.
-		line[1] ="position: "+ std::to_string(int(position[0])) + "." + std::to_string(int(100 * (position[0] - int(position[0])))) + "  " +
-			std::to_string(int(position[1])) + "." + std::to_string(int(100 * (position[1] - int(position[1]))) ) + "  " +
-			std::to_string(int(position[2])) + "." + std::to_string(int(100 * (position[2] - int(position[2]))) )+"\n";
-
-		line[2] ="rotation: "+ std::to_string(int(rotation[0])) + "." + std::to_string(int(100 * (rotation[0] - int(rotation[0])))) + "  " +
-			std::to_string(int(rotation[1])) + "." + std::to_string(int(100 * (rotation[1] - int(rotation[1])))) + "  " +
-			std::to_string(int(rotation[2])) + "." + std::to_string(int(100 * (rotation[2] - int(rotation[2])))) + "\n";
+		sprintf(buf, "position: %1.2f %1.2f %1.2f \n", double(position[0]), double(position[1]), double(position[2]));
+		line[1]= std::string(std::move(buf));
 		
-		line[3] = "scale: " + std::to_string(int(scale[0])) + "." + std::to_string(int(100 * (scale[0] - int(scale[0])))) + "  " +
-			std::to_string(int(scale[1])) + "." + std::to_string(int(100 * (scale[1] - int(scale[1])))) + "  " +
-			std::to_string(int(scale[2])) + "." + std::to_string(int(100 * (scale[2] - int(scale[2])))) + "\n";
-
-		line[4] = "color: " + std::to_string(int(color[0])) + "." + std::to_string(int(100 * (color[0] - int(color[0])))) + "  " +
-			std::to_string(int(color[1])) + "." + std::to_string(int(100 * (color[1] - int(color[1])))) + "  " +
-			std::to_string(int(color[2])) + "." + std::to_string(int(100 * (color[2] - int(color[2])))) + "\n";
-		/*sprintf(buf, "rotation: %1.2f %1.2f %1.2f \n", double(rotation[0]), double(rotation[1]), double(rotation[2]));
+		sprintf(buf, "rotation: %1.2f %1.2f %1.2f \n", double(rotation[0]), double(rotation[1]), double(rotation[2]));
 		line[2] = std::string(std::move(buf));
 
 		sprintf(buf, "scale: %1.2f %1.2f %1.2f \n", double(scale[0]), double(scale[1]), double(scale[2]));
 		line[3] = std::string(std::move(buf));
 
 		sprintf(buf, "color: %1.2f %1.2f %1.2f \n", double(color[0]), double(color[1]), double(color[2]));
-		line[4] = std::string(std::move(buf));*/
+		line[4] = std::string(std::move(buf));
 
-		ans = line[0] + line[1] + line[2] + line[3] + line[4];
-		//cout << line[1];
+		ans = line[0] + line[1] + line[2] + line[3] + line[4];*/
 		return ans;
 	}
 };
