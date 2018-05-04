@@ -120,10 +120,10 @@ public:
 		string ans="";
 		string line[5];
 		//reference:
-		//http://www.cplusplus.com/reference/cstdio/sprintf/
-		//sprintf buffer
+		//http://www.cplusplus.com/reference/cstdio/sprintf_s/
+		//sprintf_s_s buffer
 		//why did I waste time on this?
-		char *buf = new char[50];
+	/*	char *buf = new char[30];
 		line[0] = "shape: " + shape + "\n" + "position: ";
 
 		sprintf(buf, "position: %1.2f %1.2f %1.2f \n", double(position[0]), double(position[1]), double(position[2]));
@@ -138,7 +138,7 @@ public:
 		sprintf(buf, "color: %1.2f %1.2f %1.2f \n", double(color[0]), double(color[1]), double(color[2]));
 		line[4] = std::string(std::move(buf));
 
-		ans = line[0] + line[1] + line[2] + line[3] + line[4];
+		ans = line[0] + line[1] + line[2] + line[3] + line[4];*/
 		return ans;
 	}
 };
