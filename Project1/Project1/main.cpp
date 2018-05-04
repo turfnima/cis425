@@ -1,4 +1,4 @@
-//Xiaozhi Li
+ï»¿//Xiaozhi Li
 //CIS 425 CAD project (final project)
 //april 07 2018
 /*description:
@@ -6,7 +6,7 @@ basic functions:
 Type: a CAD tool
 Target: a CAD tool that utilizes 3d shaped objects and can export and import files. It has multiple windows to visualize the object in creation.
 
-Details£»
+Detailsï¿½ï¿½
 There will be buttons on the side, which generates objects in the center as described.
 There will have multiple objects to be chosen from, a sphere, a cylinder, a cube, a cuboid.
 Each of these objects can have their dimension changed (the sphere and cylinder should have their slices and stacks changed), by clicking on them, and then presses some button.
@@ -22,13 +22,13 @@ build 0.1:
 a opengl screen, using double buffer, and depth buffer.
 painter class:
 a class that holds the information of the objects that gets to be print
-	attributes within this class the object's x,y,z location, x,y,z rotation, x,y,z scale
-	attributes within this calss that holds the color
-	I will start use glcube first
+attributes within this class the object's x,y,z location, x,y,z rotation, x,y,z scale
+attributes within this calss that holds the color
+I will start use glcube first
 keyInput: a key changed location and rotatioin change
-		  mouse drag that changes location and rotation
+mouse drag that changes location and rotation
 grid at center:
-   could visually help, a standard thing with CAD design.
+could visually help, a standard thing with CAD design.
 */
 #pragma once
 
@@ -92,7 +92,7 @@ void keyInput(unsigned char key, int x, int y) {
 	case 27:
 		exit(0);
 		break;
-	//basic translation, rotation, scale
+		//basic translation, rotation, scale
 	case 'w':
 		command = 'w';
 		glutPostRedisplay();
@@ -106,14 +106,14 @@ void keyInput(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case'a':
-		cx = cx+0.5;
+		cx = cx + 0.5;
 		glutPostRedisplay();
 		break;
 	case'd':
-		cx = cx-0.5;
+		cx = cx - 0.5;
 		glutPostRedisplay();
 		break;
-	//end of translation, rotation, scale
+		//end of translation, rotation, scale
 	default:
 		break;
 	}
@@ -168,17 +168,17 @@ void pickFunction(int button, int state, int x, int y)
 		cout << "x= " << x << "  y= " << y << endl;
 		//real projection used, copied from setProjection
 		//DON'T load identity here
-		if(ortho)
+		if (ortho)
 			glOrtho(-view_w, view_w, -view_h, view_h, -view_d, view_d);
 		else
 			gluPerspective(120.0, double(window_w) / double(window_h), 1, 300);
-	
+
 
 
 		glMatrixMode(GL_MODELVIEW); // Return to modelview mode before drawing.
 		glLoadIdentity();
 
-		
+
 		glInitNames(); // Initializes the name stack to empty.
 		glPushName(0); // Puts name 0 on top of stack.
 
@@ -227,8 +227,8 @@ void printInteraction(void) {
 	cout << "welcome to my CAD 0.1 version" << endl;
 	cout << "press 'w' for position transform." << endl;
 	cout << "press 'e' for rotation transform." << endl;
-	cout << "press 'r' for rescaling (does not work ATM)" <<endl;
-	
+	cout << "press 'r' for rescaling (does not work ATM)" << endl;
+
 	cout << "press 'a' and 'd' to adjust the y value of the transform you picked" << endl;
 	cout << "future versions will have more functions" << endl;
 }
@@ -251,7 +251,7 @@ void resize(int w, int h)
 	else
 		gluPerspective(120.0, double(window_w) / double(window_h), 1, 300);
 
-	
+
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -267,13 +267,13 @@ void loadObj() {
 }
 
 void drawSceneTest() {
-	
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
 	glColor3f(1, 0, 0);
-	cout << cx << " " <<cy<< " " << cz<<" " << endl;
-	
+	cout << cx << " " << cy << " " << cz << " " << endl;
+
 	glLoadIdentity();
 
 
@@ -305,26 +305,27 @@ void paintIt(myObj  ob) {
 void drawSceneSmall() {
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	
+
+	glLoadIdentity();
+	gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
 	it1 = paintPipe.begin();
 	int i = 1;
 	/*paintPipe[0].setter('w', -1, -1, 0);
 	paintPipe[1].setter('w', 1, 1, 0);*/
-	while ( it1 != paintPipe.end()) {
-	if (isSelecting) glLoadName(i);
-	paintIt(*it1);
-	i++;
-	it1++;
-}
+	while (it1 != paintPipe.end()) {
+		if (isSelecting) glLoadName(i);
+		paintIt(*it1);
+		i++;
+		it1++;
+	}
 
 
-	glLoadIdentity();
-	gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+
 	//gluLookAt(meX, meY, meZ, meX + sin(angle*PI / 180), meY + headAngle * PI / 180, meZ + cos(angle*PI / 180), 0, 1, 0);
 	//cout<<paintPipe[0].tostring();
-	
+
 	glDisable(GL_DEPTH_TEST);
-	
+
 }
 
 void drawScene() {
@@ -344,7 +345,7 @@ int main(int argc, char **argv) {
 	printInteraction();
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	
+
 	//window
 	glutInitWindowSize(window_w, window_h);
 	glutInitWindowPosition(window_position_x, window_position_y);
