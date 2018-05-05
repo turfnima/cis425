@@ -33,6 +33,7 @@ could visually help, a standard thing with CAD design.
 #pragma once
 
 #include <iostream>
+#include<fstream>
 #include<math.h>
 //vector for vector
 #include <cstdlib>
@@ -43,7 +44,7 @@ could visually help, a standard thing with CAD design.
 #else
 #  include <GL/glut.h>
 #endif
-
+#define PI 3.14159
 //my header files
 #include"painter.h"
 //
@@ -69,7 +70,8 @@ static double display_h = 500;
 static double control_w = 400;
 static double sky_rotate = 0;
 //values for ortho view
-static double view_w = 20, view_h = 20, view_d = 90;
+static double view_w2 = 20, view_h2 = 20, view_d2 = 90;
+static double view_w = 90, view_h = 90, view_d = 90;
 
 //lists of objects for printing
 vector<myObj> paintPipe;
@@ -106,7 +108,7 @@ static int fixView = 0;
 //values for w, e, r command
 //w for position, e for rotation
 //r for resize, n for null
-static char command = 'e';
+static char command = 'w';
 static double cx = 1, cy = 1 , cz;
 
 //size values
@@ -116,6 +118,14 @@ static double rx=0.5, ry=0.5, rz=0.5;
 //top:
 static double top_up_x = 0, top_up_z = 1;
 static double top_eye_y = 10;
+
+//I don't use these by you can
+//static float altt = 0;
+static float meR = 5;
+static float angle = 0;
+static float headAngle = 0;
+static float stepsize = 2.0;  //step size
+static float turnsize = 10.0; //degrees to turn
 
 
 //these are for control window:
@@ -139,8 +149,8 @@ void keyInput(unsigned char key, int x, int y) {
 		//basic translation, rotation, scale
 	case 'p':
 		ortho = !ortho;
-		cout << ortho;
-		glutSwapBuffers();
+		
+		glutPostRedisplay();
 		break;
 	case 'w':
 		if (command == 'w') command = 'n';
@@ -286,6 +296,9 @@ void keyInput(unsigned char key, int x, int y) {
 	case't':
 		fixView = 1;//topview
 		break;
+	case'l':
+		fixView = 2;
+		break;
 	case'q'://unlock select
 		istrs = false;
 		paintPipe[closestName - 1].color[0] = 0.5;
@@ -301,13 +314,23 @@ void keyInput(unsigned char key, int x, int y) {
 	case'f':
 		fixView = 0;//front view
 		break;
-	case'l':
-		fixView = 0;//left view
+	case'z':
+		if (angle > 360)angle = angle - 360;
+		angle = angle + turnsize;
+		glutPostRedisplay();
+		break;
+	case'c':
+		if (angle < -360)angle += 360;
+		angle = angle - turnsize;
+		glutPostRedisplay();
 		break;
 	case'+':
 		addMoreObject("cylinder");
 		break;
 		//end of translation, rotation, scale
+	case'o':
+		cout << paintPipe[(closestName - 1)].to_string() << endl;
+		break;
 	default:
 		break;
 	}
@@ -450,9 +473,8 @@ void trsObject(char c,double x, double y, double z) {
 }
 
 void addMoreObject(string shape) {
-	
-
-		myObj *a = new myObj(shape);
+		
+	myObj *a = new myObj(shape);
 
 	//check if we have more than 500 boxes
 	if (paintPipe.size() > 500) { 
@@ -460,6 +482,7 @@ void addMoreObject(string shape) {
 		return;
 	}
 	paintPipe.push_back(*a);
+	glutPostRedisplay();
 }
 
 //print interaction to the console (i dont think i need this for actual build)
@@ -498,16 +521,10 @@ void resize(int w, int h)
 void mouseMotion(int x, int y)
 {
 	if (right_mosue) {
-		if (fixView == 1) {
-
-			
-			top_eye_y += (y - mouse_start_y)/10;
-			cout << "top_eye"<<top_eye_y << endl;
-			cout << "  eye location:"<<top_eye_y<<endl;
+	/*	if (fixView == 0) {
+			angle = angle + turnsize*(x - mouse_start_x)/20;
 			glutPostRedisplay();
-		}
-		
-		
+		}*/
 	}
 	else{
 	double worldx;
@@ -530,15 +547,15 @@ void mouseMotion(int x, int y)
 		worldz = obj->position[2];
 		//front view 
 		if (fixView == 0) {
-			worldx = (window_w / 2 - x) * 2 * view_w / window_w;
-			worldy = -(y - window_h / 2) / 2 * view_d / window_h;
+			worldx = (window_w / 2 - x)  * view_w / window_w/4;
+			worldy = -(y - window_h / 2)/2 / 2 * view_d / window_h;
 			//we are translating the mouse position into world
 			obj->setter(command, worldx, worldy, worldz);
 		}
 		//top view
 		else if (fixView == 1) {
-			worldx = (window_w / 2 - x) * 2 * view_w / window_w;
-			worldz = -(y - window_h / 2) / 2 * view_d / window_h;
+			worldx = (window_w / 2 - x)  * view_w / window_w/2;
+			worldz = -(y - window_h / 2)  * view_d / window_h/2;
 			obj->setter(command, worldx, worldy, worldz);
 		}
 	}
@@ -586,6 +603,46 @@ void loadObj() {
 	load = true;
 }
 
+//output 
+//reference http://www.cplusplus.com/doc/tutorial/files/
+void outPut() {
+	if (paintPipe.size() < 1) {
+		cout << "error, there is no file to out put";
+		return;
+	}
+	ofstream myfile;
+	myfile.open("output.myobj");
+	for (unsigned i = 0; i < paintPipe.size(); ++i) {
+		myfile << paintPipe[i].to_string();
+	}
+	myfile.close();
+	return;
+}
+
+//reference: http://www.cplusplus.com/doc/tutorial/files/
+//
+//input
+void inFile() {
+	string line;
+	string filename;
+	cout << "please enter the file name" << endl;
+	cin >> filename;
+	ifstream myfile(filename+".myobj");
+	if (myfile.is_open())
+	{
+		//reference https://stackoverflow.com/questions/14516915/read-numeric-data-from-a-text-file-in-c
+		while (getchar())
+		{
+			cout << line << '\n';
+		}
+		myfile.close();
+	}
+
+	else cout << "Unable to open file";
+
+	return;
+
+}
 
 void paintIt(myObj  &ob) {
 	glPushMatrix();
@@ -612,42 +669,78 @@ void paintIt(myObj  &ob) {
 	else if (ob.shape == "cylinder") {
 		GLUquadricObj *quadratic;
 			quadratic= gluNewQuadric();
-		gluCylinder(quadratic, ob.radius[1], ob.radius[1], 1, ob.stacks[0], ob.stacks[1]);
+		gluCylinder(quadratic, ob.radius[1], ob.radius[1], 1.2, ob.stacks[0], ob.stacks[1]);
 	}
 	glPopMatrix();
 }
 void viewSet() {
-	//load identity before look at
-	glLoadIdentity();
 	
-	if (fixView>-1) {
-		switch (fixView) {
-		case 1://top
-			gluLookAt(0, top_eye_y, 0, 0, 0, 0, top_up_x, 0, top_up_z);
-			break;
-		case 0://front
-			gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
-			break;
-		case 3://left
-			gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
-			break;
-		case 4:
-			break;
-		default:
-			gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
-			break;
+	if(ortho){
+		if (fixView > -1) {
+			switch (fixView) {
+			case 1://top
+				gluLookAt(0, top_eye_y, 0, 0, 0, 0, top_up_x, 0, top_up_z);
+				break;
+			case 0://front
+				   //gluLookAt goes here
+				gluLookAt(sin(angle*PI / 180)*meR, 0, -cos(angle*PI / 180)*meR,
+					0, 0, 0,
+					0, 1, 0);
+				break;
+			case 3://left
+				gluLookAt(cos(angle*PI / 180)*meR, 0, sin(angle*PI / 180)*meR,
+					0, 0, 0,
+					0, 1, 0);
+				break;
+			case 4:
+				break;
+			default:
+				gluLookAt(sin(angle*PI / 180)*meR, 0, cos(angle*PI / 180)*meR,
+					0, 0, 0,
+					0, 1, 0);
+				break;
+			}
 		}
-		
+
 	}
 	else{
-		
-	gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+		if (fixView>-1) {
+			switch (fixView) {
+			case 1://top
+				gluLookAt(0, top_eye_y, 0, 0, 0, 0, top_up_x, 0, top_up_z);
+				break;
+			case 0://front
+				   //gluLookAt goes here
+				gluLookAt(sin(angle*PI / 180)*meR, 0, -cos(angle*PI / 180)*meR,
+					0, 0, 0,
+					0, 1, 0);
+				break;
+			case 3://left
+				gluLookAt(cos(angle*PI / 180)*meR, 0, sin(angle*PI / 180)*meR,
+					0, 0, 0,
+					0, 1, 0);
+				break;
+			case 4:
+				break;
+			default:
+				gluLookAt(sin(angle*PI / 180)*meR, 0, cos(angle*PI / 180)*meR,
+					0, 0, 0,
+					0, 1, 0);
+				break;
+			}
+
+		}
+
 	}
+	
+	
 }
 
 void drawSceneSmall() {
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
+	//load identity before look at
+	glLoadIdentity();
 	viewSet();
 	it1 = paintPipe.begin();
 	int i = 1;
@@ -659,6 +752,7 @@ void drawSceneSmall() {
 		i++;
 		it1++;
 	}
+
 	//gluLookAt(meX, meY, meZ, meX + sin(angle*PI / 180), meY + headAngle * PI / 180, meZ + cos(angle*PI / 180), 0, 1, 0);
 	//cout<<paintPipe[0].to_string();
 	glDisable(GL_DEPTH_TEST);
@@ -688,7 +782,7 @@ void resize2(int w, int h)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	//view box
-	glOrtho(-view_w / 1.6, view_w / 1.6, -view_h, view_h, -view_d, view_d);
+	glOrtho(-view_w2 / 1.6, view_w2 / 1.6, -view_h2, view_h2, -view_d2, view_d2);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -723,19 +817,19 @@ void mouseControl(int button, int state, int x, int y) {
 			command = 'n';
 		}
 
-		else if (x >= 296 && x <= 385 && y >= 70 && y <= 128) {
-			radiobutton = 0;
-			rotation_axis = 'x';
 
-		}
 		//buttons2
+		if (x >= 115 && x <= 189 && y >= 70 && y <= 128) {
+			radiobutton2 = 0;
+			command = 'w';
+		}
 		else if (x >= 115 && x <= 189 && y >= 140 && y <= 190) {
 			radiobutton2 = 1;
-			
+			command = 'e';
 		}
 		else if (x >= 115 && x <= 189 && y >= 200 && y <= 255) {
 			radiobutton2 = 2;
-			
+			command = 'r';
 		}
 		else if (x >= 115 && x <= 189 && y >= 265 && y <= 321) {
 			radiobutton2 = 3;
@@ -913,19 +1007,19 @@ void drawScene_control(void) {
 	//right radio button instructions
 	glColor3f(0.0, 0.0, 1.0);
 	glRasterPos3f(radioX2 - 7, radioY2, radioZ2);
-	writeBitmapString((void*)font, "x axis");
+	writeBitmapString((void*)font, "transition");
 
 	glColor3f(0.0, 0.0, 1.0);
 	glRasterPos3f(radioX2 - 7, radioY2 - 5, radioZ2);
-	writeBitmapString((void*)font, "y axis");
+	writeBitmapString((void*)font, "rotation");
 
 	glColor3f(0.0, 0.0, 1.0);
 	glRasterPos3f(radioX2 - 7, radioY2 - 10, radioZ2);
-	writeBitmapString((void*)font, "z axis");
+	writeBitmapString((void*)font, "scale");
 
 	glColor3f(0.0, 0.0, 1.0);
 	glRasterPos3f(radioX2 - 7, radioY2 - 15, radioZ2);
-	writeBitmapString((void*)font, "lock it");
+	writeBitmapString((void*)font, "no action");
 	
 	
 	//radio button end
@@ -934,6 +1028,57 @@ void drawScene_control(void) {
 }
 
 
+void top_menu(int id) {
+
+	
+	//object destroy
+	 if (id == 3 && istrs && closestName > 0) {
+		paintPipe.erase(paintPipe.begin() + closestName - 1);
+		std::cout << "myvector contains:";
+		for (unsigned i = 0; i<paintPipe.size(); ++i)
+			std::cout << ' ' << paintPipe[i].shape;
+		std::cout << '\n';
+		glutPostRedisplay();
+	}
+	else if (id == 2) {
+		cout << "output" << endl;
+		outPut();
+	}
+	else if (id == 4) exit(0);
+	
+}
+void objectCreate(int id) {
+	if (id == 1)exit(0);
+	else if (id == 2) addMoreObject("cube");
+	else if (id == 3) addMoreObject("torus");
+	else if (id == 4)addMoreObject("cylinder");
+	else if (id == 5) {
+		cout << "input" << endl;
+		inFile();
+	}
+}
+void makeMenu(void) {
+	glutSetWindow(id1);
+	int sub_menu1;
+	sub_menu1 = glutCreateMenu(objectCreate);
+	glutAddMenuEntry("cube", 2);
+	glutAddMenuEntry("torus", 3);
+	glutAddMenuEntry("cylinder", 4);
+	glutAddMenuEntry("input", 5);
+	//glutCreateMenu(top_menu);
+	//glutAddMenuEntry("Toggle Full Moon",2);
+	//glutAddMenuEntry("Toggle Moon Drag", 3);
+	//glutAddMenuEntry("Toggle Night/Day", 4);
+	//glutAddMenuEntry("Rotate sky 90 degrees", 5);
+	//glutAddMenuEntry("Switch Moon Size", 6);
+	glutCreateMenu(top_menu);
+	//glutAddMenuEntry("Input File", 1);
+	glutAddMenuEntry("Output File", 2);
+	glutAddMenuEntry("destroy", 3);
+	glutAddMenuEntry("Quit", 4);
+	glutAddSubMenu("create object", sub_menu1);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
 
 
 
@@ -950,14 +1095,14 @@ int main(int argc, char **argv) {
 	setup();
 	glutReshapeFunc(resize);
 
-	if (!load) loadObj();
+	//if (!load) loadObj();
 	glutDisplayFunc(drawScene);
 
 	glutKeyboardFunc(keyInput);
 	glutMouseFunc(pickFunction);
 	//glutMouseFunc(rmControl);
 	glutMotionFunc(mouseMotion);
-
+	
 	//window2 top view
 	glutInitWindowSize(control_w, display_h);
 	glutInitWindowPosition(display_position_x + display_w, display_position_y);
@@ -980,6 +1125,7 @@ int main(int argc, char **argv) {
 	glutDisplayFunc(drawScene_control);
 	glutMouseFunc(mouseControl);
 	glutReshapeFunc(resize2);
+	makeMenu();
 	glutMainLoop();
 	return 0;
 }

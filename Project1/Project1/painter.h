@@ -148,20 +148,20 @@ public:
 		//why did I waste time on this?
 		char *buf = new char[30];
 		line[0] = "shape: " + shape + "\n";
-
+		
 		// position[0]- int(position[0]) is the decimal part
 		//multiply by 100 and convert to int then I got my 2 decimals.
-		line[1] ="position: "+ std::to_string(int(position[0])) + "." + std::to_string(int(100 * (position[0] - int(position[0])))) + "  " +
-			std::to_string(int(position[1])) + "." + std::to_string(int(100 * (position[1] - int(position[1]))) ) + "  " +
-			std::to_string(int(position[2])) + "." + std::to_string(int(100 * (position[2] - int(position[2]))) )+"\n";
+		line[1] ="position: "+ std::to_string(double(position[0])) + "  " +
+			std::to_string(double(position[1]))  + "  " +
+			std::to_string(double(position[2])) +"\n";
 
-		line[2] ="rotation: "+ std::to_string(int(rotation[0])) + "." + std::to_string(int(100 * (rotation[0] - int(rotation[0])))) + "  " +
-			std::to_string(int(rotation[1])) + "." + std::to_string(int(100 * (rotation[1] - int(rotation[1])))) + "  " +
-			std::to_string(int(rotation[2])) + "." + std::to_string(int(100 * (rotation[2] - int(rotation[2])))) + "\n";
+		line[2] = "rotation: " + std::to_string(double(rotation[0])) + "  " +
+			std::to_string(double(rotation[1])) + "  " +
+			std::to_string(double(rotation[2])) + "\n";
 		
-		line[3] = "scale: " + std::to_string(int(scale[0])) + "." + std::to_string(int(100 * (scale[0] - int(scale[0])))) + "  " +
-			std::to_string(int(scale[1])) + "." + std::to_string(int(100 * (scale[1] - int(scale[1])))) + "  " +
-			std::to_string(int(scale[2])) + "." + std::to_string(int(100 * (scale[2] - int(scale[2])))) + "\n";
+		line[3] = "scale: " + std::to_string(double(scale[0])) + "  " +
+			std::to_string(double(scale[1])) + "  " +
+			std::to_string(double(scale[2])) + "\n";
 
 		line[4] = "color: " + std::to_string(int(color[0])) + "." + std::to_string(int(100 * (color[0] - int(color[0])))) + "  " +
 			std::to_string(int(color[1])) + "." + std::to_string(int(100 * (color[1] - int(color[1])))) + "  " +
