@@ -17,6 +17,7 @@ https://www.cprogramming.com/tutorial/function-pointers.html
 #include<stdio.h>
 #include <cmath>
 #include<string>
+#define _CRT_SECURE_NO_WARNINGS
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
 #else
@@ -97,6 +98,35 @@ public:
 			stacks[1] = 15;
 		}
 	}
+
+	myObj(string s,double p1, double p2, double p3, double r1, double r2, double r3, double s1, double s2, double s3, double c1, double c2, double c3) {
+		//error prevention
+		if (s != "cube" || s != "cylinder" || s != "cuboid" || s != "sphere" || s != "torus") shape = "cube";
+		shape = s;
+		command = 'n';
+		position[0] = p1;
+		position[1] = p2;
+		position[2] = p3;
+
+		
+		rotation[1] = r1;
+		rotation[2] = r2;
+		rotation[3] = r3;
+		scale[0] = s1;
+		scale[1] = s2;
+		scale[2] = s3;
+
+		color[0] = c1;
+		color[1] = c2;
+		color[2] = c3;
+
+		if (s == "cylinder" || s == "torus") {
+			radius[0] = 0.3;
+			radius[1] = 1;
+			stacks[0] = 15;
+			stacks[1] = 15;
+		}
+	}
 	~myObj() {};
 	//the object paints itself according to the position
 	//rotation, and scale
@@ -127,6 +157,10 @@ public:
 			scale[1] = y;
 			scale[2] = z;
 			break;
+		case'c':
+			color[0] = x;
+			color[1] = y;
+			color[2] = z;
 		case'n':
 			break;
 		default:
@@ -151,7 +185,9 @@ public:
 		
 		// position[0]- int(position[0]) is the decimal part
 		//multiply by 100 and convert to int then I got my 2 decimals.
-		line[1] ="position: "+ std::to_string(double(position[0])) + "  " +
+		
+
+		line[1] ="position: "+ std::to_string((double(position[0]))) + "  " +
 			std::to_string(double(position[1]))  + "  " +
 			std::to_string(double(position[2])) +"\n";
 
@@ -166,10 +202,10 @@ public:
 		line[4] = "color: " + std::to_string(int(color[0])) + "." + std::to_string(int(100 * (color[0] - int(color[0])))) + "  " +
 			std::to_string(int(color[1])) + "." + std::to_string(int(100 * (color[1] - int(color[1])))) + "  " +
 			std::to_string(int(color[2])) + "." + std::to_string(int(100 * (color[2] - int(color[2])))) + "\n";
-		/*sprintf(buf, "rotation: %1.2f %1.2f %1.2f \n", double(rotation[0]), double(rotation[1]), double(rotation[2]));
-		line[2] = std::string(std::move(buf));
+		//snprintf(buf, "rotation: %1.2f %1.2f %1.2f \n", double(rotation[0]), double(rotation[1]), double(rotation[2]));
+		//line[2] = std::string(std::move(buf));
 
-		sprintf(buf, "scale: %1.2f %1.2f %1.2f \n", double(scale[0]), double(scale[1]), double(scale[2]));
+		/*sprintf(buf, "scale: %1.2f %1.2f %1.2f \n", double(scale[0]), double(scale[1]), double(scale[2]));
 		line[3] = std::string(std::move(buf));
 
 		sprintf(buf, "color: %1.2f %1.2f %1.2f \n", double(color[0]), double(color[1]), double(color[2]));

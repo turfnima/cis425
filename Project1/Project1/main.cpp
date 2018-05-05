@@ -44,6 +44,7 @@ could visually help, a standard thing with CAD design.
 #else
 #  include <GL/glut.h>
 #endif
+#define _CRT_SECURE_NO_WARNINGS
 #define PI 3.14159
 //my header files
 #include"painter.h"
@@ -121,7 +122,7 @@ static double top_eye_y = 10;
 
 //I don't use these by you can
 //static float altt = 0;
-static float meR = 5;
+static float meR = 9;
 static float angle = 0;
 static float headAngle = 0;
 static float stepsize = 2.0;  //step size
@@ -129,6 +130,7 @@ static float turnsize = 10.0; //degrees to turn
 
 
 //these are for control window:
+//radiouibutton2 0=w 1=e 2=r 3=lock
 static int radiobutton = 0, radiobutton2=0;
 static long font = (long)GLUT_BITMAP_9_BY_15; // Font selection.
 
@@ -153,20 +155,48 @@ void keyInput(unsigned char key, int x, int y) {
 		glutPostRedisplay();
 		break;
 	case 'w':
-		if (command == 'w') command = 'n';
+		if (command == 'w') { 
+			command = 'n'; 
+			glutSetWindow(id3);
+			radiobutton2 = 3;
+			glutPostRedisplay();
+			glutSetWindow(id1);
+		}
 		else command = 'w';
+		glutSetWindow(id3);
+		radiobutton2 = 0;
+		glutPostRedisplay();
+		glutSetWindow(id1);
 		break;
 	case'e':
-		if (command == 'e') command = 'n';
+		if (command == 'e') {
+			command = 'n';
+			glutSetWindow(id3);
+			radiobutton2 = 3;
+			glutPostRedisplay();
+			glutSetWindow(id1);
+		}
 		else command = 'e';
+		glutSetWindow(id3);
+		radiobutton2 = 1;
+		glutPostRedisplay();
+		glutSetWindow(id1);
 		break;
 	case'r'://scale
 		if (command == 'r') { 
 			command = 'n';
 			cx = 1;
 			cy = 1;
+			glutSetWindow(id3);
+			radiobutton2 = 3;
+			glutPostRedisplay();
+			glutSetWindow(id1);
 		}
 		else command = 'r';
+		glutSetWindow(id3);
+		radiobutton2 = 2;
+		glutPostRedisplay();
+		glutSetWindow(id1);
 		break;
 	case'g'://reset rotation:
 		if (command == 'e' && istrs) {
@@ -224,10 +254,10 @@ void keyInput(unsigned char key, int x, int y) {
 			case'x':
 				paintPipe[closestName - 1].scale[0] = cy;
 				break;
-			case'y':
+			case'z':
 				paintPipe[closestName - 1].scale[1] = cy;
 				break;
-			case'z':
+			case'y':
 				paintPipe[closestName - 1].scale[2] = cy;
 				break;
 			default:
@@ -282,12 +312,16 @@ void keyInput(unsigned char key, int x, int y) {
 			case'x':
 				paintPipe[closestName - 1].scale[0] = cy;
 				break;
-			case'y':
+			case'z':
 				paintPipe[closestName - 1].scale[1] = cy;
 				break;
-			case'z':
+			case'y':
 				paintPipe[closestName - 1].scale[2] = cy;
 				break;
+				glutSetWindow(id3);
+				radiobutton2 = 3;
+				glutPostRedisplay();
+				glutSetWindow(id1);
 			default:
 				break;
 			}
@@ -297,10 +331,12 @@ void keyInput(unsigned char key, int x, int y) {
 		fixView = 1;//topview
 		break;
 	case'l':
+		angle = 90;
 		fixView = 2;
 		break;
 	case'q'://unlock select
 		istrs = false;
+		if (closestName < 1) break;
 		paintPipe[closestName - 1].color[0] = 0.5;
 		paintPipe[closestName - 1].color[1] = 0.5;
 		paintPipe[closestName - 1].color[2] = 0.5;
@@ -312,6 +348,7 @@ void keyInput(unsigned char key, int x, int y) {
 		else rotation_axis = 'x';
 		break;
 	case'f':
+		angle = 0;
 		fixView = 0;//front view
 		break;
 	case'z':
@@ -538,10 +575,12 @@ void mouseMotion(int x, int y)
 	//translate mousemotion
 	if(command=='n')
 	{
+		radiobutton2 = 3;
 		return;
 	}
 	else if (command == 'w') 
 	{
+		radiobutton2 = 0;
 		worldx = obj->position[0];
 		worldy = obj->position[1];
 		worldz = obj->position[2];
@@ -561,7 +600,7 @@ void mouseMotion(int x, int y)
 	}
 	else if (command == 'e') 
 	{
-		
+		radiobutton2 = 1;
 		worldx = obj->rotation[0];
 		worldy = obj->rotation[1];
 		worldz = obj->rotation[2];
@@ -611,6 +650,8 @@ void outPut() {
 		return;
 	}
 	ofstream myfile;
+
+	//myfile.open("key.myobj");
 	myfile.open("output.myobj");
 	for (unsigned i = 0; i < paintPipe.size(); ++i) {
 		myfile << paintPipe[i].to_string();
@@ -625,21 +666,60 @@ void outPut() {
 void inFile() {
 	string line;
 	string filename;
+	string shape;
+	double p[3] ;
+	double r[3] ;
+	double s[3] ;
+	double c[3] ;
+	string buf;
 	cout << "please enter the file name" << endl;
 	cin >> filename;
 	ifstream myfile(filename+".myobj");
+
+	//ifstream myfile("output.myobj");
 	if (myfile.is_open())
 	{
 		//reference https://stackoverflow.com/questions/14516915/read-numeric-data-from-a-text-file-in-c
-		while (getchar())
+		while (myfile)
 		{
-			cout << line << '\n';
+			myfile >> buf >> shape;
+			getline(myfile, buf);
+			myfile>>buf>> p[0] >> p[1] >> p[2];
+		getline(myfile,buf);
+		myfile>>buf>> r[0] >> r[1] >> r[2];
+		getline(myfile, buf);
+		myfile >> buf >> s[0] >> s[1] >> s[2];
+		getline(myfile, buf);
+		myfile >> buf >> c[0] >> c[1] >> c[2];
+		getline(myfile, buf);
+		for (int i = 0; i < 3; i++)
+			if (p[i] < 0.00005)p[i] = 0;
+		for (int i = 0; i<3; i++)
+			if (r[i] < 0.00005)r[i] = 0;
+		for (int i = 0; i<3; i++)
+			if (s[i] < 0.00005)s[i] = 0;
+		for (int i = 0; i<3; i++)
+			if (c[i] < 0.00005)c[i] = 0;
+		myObj *asd = new myObj (shape);
+		asd->setter('w', p[0], p[1], p[2]);
+		asd->setter('e', r[0], r[1], r[2]);
+		asd->setter('r', s[0], s[1], s[2]);
+		asd->setter('c', c[0], c[1], c[2]);
+		paintPipe.push_back(*asd);
+		
+		//a->setter('w', 1, 1, -3);
+		//b->setter('w', -1, -1, -1);
+		//paintPipe.push_back((*b));
+		//paintPipe.push_back((*a));
 		}
 		myfile.close();
+
+		cout << "input finished" << endl;
 	}
 
 	else cout << "Unable to open file";
-
+	
+	glutPostRedisplay();
 	return;
 
 }
@@ -802,19 +882,30 @@ void mouseControl(int button, int state, int x, int y) {
 		if (x >= 296 && x <= 385 && y >= 70 && y <= 128) {
 			radiobutton = 0;
 			rotation_axis = 'x';
-			
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			glutSetWindow(id3);
 		}
 		else if (x >= 296 && x <= 385 && y >= 140 && y <= 190) {
 			radiobutton = 1;
 			rotation_axis = 'y';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			glutSetWindow(id3);
 		}
 		else if (x >= 296 && x <= 385 && y >= 200 && y <= 255) {
 			radiobutton = 2;
 			rotation_axis = 'z';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			glutSetWindow(id3);
 		}
 		else if (x >= 296 && x <= 385 && y >= 265 && y <= 321) {
 			radiobutton = 3;
 			command = 'n';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			glutSetWindow(id3);
 		}
 
 
@@ -822,18 +913,30 @@ void mouseControl(int button, int state, int x, int y) {
 		if (x >= 115 && x <= 189 && y >= 70 && y <= 128) {
 			radiobutton2 = 0;
 			command = 'w';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			
 		}
 		else if (x >= 115 && x <= 189 && y >= 140 && y <= 190) {
 			radiobutton2 = 1;
 			command = 'e';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			
 		}
 		else if (x >= 115 && x <= 189 && y >= 200 && y <= 255) {
 			radiobutton2 = 2;
 			command = 'r';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			
 		}
 		else if (x >= 115 && x <= 189 && y >= 265 && y <= 321) {
 			radiobutton2 = 3;
 			command = 'n';
+			glutSetWindow(id1);
+			glutPostRedisplay();
+			
 		}
 	}
 	glutPostRedisplay();
