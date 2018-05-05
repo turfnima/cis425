@@ -79,11 +79,14 @@ static unsigned int buffer[1024]; // Hit buffer.
 static int hits; // Number of entries in hit buffer.
 static bool isSelecting = false;
 static int isDragging = 0;
-//toggle ortho?
+//toggle ortho or perspective
+//for some reason it is not working properly
+//i suspect one of the function is put in wrong order
  bool ortho = false;
 
 //for mouse drag:
-int mousex, mousey;
+int mouse_start_x, mouse_start_y;
+char rotation_axis = 'x';
 
 //if is trs, then we lock the selection, thus we can do translate
 //if not trs, then we shouldn't do any translate
@@ -92,7 +95,9 @@ static bool istrs = false;
 //fix view, 0=front perspective, 1=top ortho, 2=left ortho,
 static int fixView = 0;
 //values for w, e, r command
-static char command = 'n';
+//w for position, e for rotation
+//r for resize, n for null
+static char command = 'e';
 static double cx, cy, cz;
 
 
@@ -116,16 +121,26 @@ void keyInput(unsigned char key, int x, int y) {
 		glutSwapBuffers();
 		break;
 	case 'w':
-		if (command == key) command = 'n';
-		else command = key;
+		if (command == 'w') command = 'n';
+		else command = 'w';
 		break;
 	case'e':
-		if (command == key) command = 'n';
-		else command = key;
+		if (command == 'e') command = 'n';
+		else command = 'e';
 		break;
-	case'r':
-		if (command == key) command = 'n';
-		else command = key;
+	case'r'://scale
+		if (command == 'r') command = 'n';
+		else command = 'r';
+		break;
+	case'g'://reset rotation:
+		if (command == 'e' && istrs) {
+			for (int i = 0; i < 3; i++)
+				paintPipe[closestName - 1].rotation[i] = 0;
+		}
+		if (command == 'w'&& istrs) {
+			for (int i = 0; i < 3; i++)
+				paintPipe[closestName - 1].position[i] = 0;
+		}
 		break;
 	case'a':
 		cx = cx + 0.5;
@@ -134,7 +149,7 @@ void keyInput(unsigned char key, int x, int y) {
 		cx = cx - 0.5;	
 		break;
 	case't':
-		fixView = 1;
+		fixView = 1;//topview
 		break;
 	case'q'://unlock select
 		istrs = false;
@@ -143,11 +158,16 @@ void keyInput(unsigned char key, int x, int y) {
 		paintPipe[closestName - 1].color[2] = 0.5;
 		//reset the color
 		break;
+	case 'x'://rotation axis
+		if (rotation_axis == 'x') rotation_axis = 'y';
+		else if (rotation_axis == 'y')rotation_axis = 'z';
+		else rotation_axis = 'x';
+		break;
 	case'f':
-		fixView = 0;
+		fixView = 0;//front view
 		break;
 	case'l':
-		fixView = 0;
+		fixView = 0;//left view
 		break;
 	case'+':
 		addMoreObject('4');
@@ -190,11 +210,20 @@ void pickFunction(int button, int state, int x, int y)
 {
 	int viewport[4]; // Viewport data.
 
-	if (istrs)
-		return;
+
+	
+
+
 					 // Don't react unless left button is pressed.
-	else if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
+
+		mouse_start_x = x;
+		cout << "mouse start x: " << mouse_start_x << endl;
+		mouse_start_y = y;
+		cout << "mouse start y: " << mouse_start_y << endl;
+		if (istrs == true) return;
+		
 		glGetIntegerv(GL_VIEWPORT, viewport); // Get viewport data.
 		glSelectBuffer(1024, buffer); // Specify buffer to write hit records in selection mode
 		(void)glRenderMode(GL_SELECT); // Enter selection mode.
@@ -207,6 +236,8 @@ void pickFunction(int button, int state, int x, int y)
 		// Define a viewing volume corresponding to selecting in 2 x 2 region around the cursor.
 		glLoadIdentity();
 		gluPickMatrix((float)x, (float)(viewport[3] - y), 1.0, 1.0, viewport);
+
+		
 		//cout << "x= " << x << "  y= " << y << endl;
 		//real projection used, copied from setProjection
 		//DON'T load identity here
@@ -233,7 +264,7 @@ void pickFunction(int button, int state, int x, int y)
 										// Determine closest of the hit objects (if any).
 										// closest object name will be saved in closestName.
 		findClosestHit(hits, buffer);
-
+		
 		if (closestName > 0)//automatically lock my selection
 		{
 			istrs = true;
@@ -241,9 +272,7 @@ void pickFunction(int button, int state, int x, int y)
 			paintPipe[closestName - 1].color[1] = 0;
 			paintPipe[closestName - 1].color[2] = 0;
 		}
-		mousex = x;
-		mousey = y;
-		cout << mousex << " ." << mousey << endl;
+		
 		cout << "closest hit==" << closestName << endl;
 		// -------------- - END OF Selecting--------------
 
@@ -324,42 +353,61 @@ void resize(int w, int h)
 //mouse Motion function
 void mouseMotion(int x, int y)
 {
-
-	int i = closestName - 1;
-	
 	double worldx;
 	double worldy;
 	double worldz;
-	//front view
-	//perspective
-	if(!ortho){
-		worldx = (window_w / 2 - x) * view_w / window_w;
-		worldy = -(y - window_h / 2) / 2 / 2 * view_d / window_h;
-	}
-	//front view
-	//ortho
-	else if (ortho) {
-		worldx = (window_w / 2 - x) *2* view_w / window_w;
-		worldy = -(y - window_h / 2) / 2 * view_d / window_h;
-	}
+	int i = closestName - 1;
+	if (i < 0) return;
 
-	if(i>-1){
-	//we are translating the mouse position into world
-		switch (command){
-		case 'w':
-			worldz = paintPipe[i].position[2];
-			paintPipe[i].setter(command, worldx, worldy, worldz);
-			break;
-		}
+	myObj *obj = &paintPipe[i];
 	
-	//there are three types of views
-	//for top down view: world x= = (window_w / 2 - x) * 2 * view_w / window_w
+	//translate mousemotion
+	if(command=='n')
+	{
+		return;
+	}
+	else if (command == 'w') 
+	{
+		worldx = obj->position[0];
+		worldy = obj->position[1];
+		worldz = obj->position[2];
+		//front view 
+		if (fixView == 0) {
+			worldx = (window_w / 2 - x) * 2 * view_w / window_w;
+			worldy = -(y - window_h / 2) / 2 * view_d / window_h;
+			//we are translating the mouse position into world
+			obj->setter(command, worldx, worldy, worldz);
+		}
+		//top view
+		else if (fixView == 1) {
+			worldx = (window_w / 2 - x) * 2 * view_w / window_w;
+			worldz = -(y - window_h / 2) / 2 * view_d / window_h;
+			obj->setter(command, worldx, worldy, worldz);
+		}
+	}
+	else if (command == 'e') 
+	{
+		
+		worldx = obj->rotation[0];
+		worldy = obj->rotation[1];
+		worldz = obj->rotation[2];
+		//front view 
+		double rotationAngle = (x - mouse_start_x) ;
+			//only one rotation axis, so we can do something more acurate
+		cout << "rotation_axis: " << rotation_axis << endl;
+			if(rotation_axis=='x')worldx = rotationAngle;
+			else if (rotation_axis == 'y')worldy = rotationAngle;
+			else if (rotation_axis == 'z')worldz = rotationAngle;
+			//we are translating the mouse position into world
+			obj->setter(command, worldx, worldy, worldz);
+		
+	}
+			
 
-	//for front view:
 	
 	
 	glutPostRedisplay();
-	}
+	
 	
 
 } // end mouseMotion
@@ -368,8 +416,8 @@ void mouseMotion(int x, int y)
 //load the objects into paintPipe
 void loadObj() {
 	a->setter('w', 1, 1, -3);
-	b->setter('w', -1, -1, -1);
-	paintPipe.push_back((*b));
+	//b->setter('w', -1, -1, -1);
+	//paintPipe.push_back((*b));
 	paintPipe.push_back((*a));
 	load = true;
 }
@@ -388,7 +436,7 @@ void drawSceneTest() {
 
 	glDisable(GL_DEPTH_TEST);
 }
-void paintIt(myObj  ob) {
+void paintIt(myObj  &ob) {
 	glPushMatrix();
 	glColor3f(ob.color[0], ob.color[1], ob.color[2]);
 	glTranslatef(ob.position[0], ob.position[1], ob.position[2]);

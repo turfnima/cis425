@@ -30,6 +30,7 @@ using namespace std;
 class myObj{
 public:
 	string shape;
+	char command='n';
 	 //position x y and z is the position we paint  this object at.(x,y,z)
 	GLdouble position[3];
 	// rotation x y and z is the degree of angle that rotates around this axis.
@@ -44,6 +45,7 @@ public:
 	//default shape is cube (just for preventing erros)
 	myObj() {
 		shape = "cube";
+		command = 'n';
 				position[0] = 0;
 				position[1] = 0;
 				position[2] = 0;
@@ -65,6 +67,7 @@ public:
 		//error prevention
 		if (s != "cube" || s != "cylinder" || s != "cuboid" || s != "sphere") shape = "cube";
 		shape = s;
+		command = 'n';
 		position[0] = 0;
 		position[1] = 0;
 		position[2] = 0;
@@ -86,8 +89,9 @@ public:
 	//rotation, and scale
 	
 
-	void setter(char command, GLdouble x, GLdouble y, GLdouble z) {
+	void setter(char c, GLdouble x, GLdouble y, GLdouble z) {
 		//cout << "setter called" << endl;
+		command = c;
 		switch (command)
 		{
 		case'w':
@@ -97,6 +101,9 @@ public:
 			//cout << "positions: " << position[0] << " " << position[1] << " " << position[3] << endl;
 			break;
 		case'e':
+			//restrain at the 360 angle
+			for (int i = 0; i < 2; i++)
+				if (rotation[i] >= 360)rotation[i] = rotation[i] - 360;
 			rotation[0] = x;
 			rotation[1] = y;
 			rotation[2] = z;
