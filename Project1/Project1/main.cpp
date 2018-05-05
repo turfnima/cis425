@@ -6,14 +6,14 @@ basic functions:
 Type: a CAD tool
 Target: a CAD tool that utilizes 3d shaped objects and can export and import files. It has multiple windows to visualize the object in creation.
 
-Details��
+Details
 There will be buttons on the side, which generates objects in the center as described.
 There will have multiple objects to be chosen from, a sphere, a cylinder, a cube, a cuboid.
 Each of these objects can have their dimension changed (the sphere and cylinder should have their slices and stacks changed), by clicking on them, and then presses some button.
-Each of these objects can be turned around, by keyboard.
-Each of these objects can be moved around, in 3d space.
-There will be at least 3 windows, each looks at the scene from a different angle.
-There should be a reasonable limit of the maximum objects one can have in the scene.
+Each of these objects can be turned around, by keyboard. (yes)
+Each of these objects can be moved around, in 3d space. (yes)
+There will be at least 3 windows, each looks at the scene from a different angle. (did it with one window)
+There should be a reasonable limit of the maximum objects one can have in the scene.(500)
 The objects, and the coordinates of the objects, can be exported out into a file.
 Should the exported file exist, the program can read it and extract the same object file and print it to the scene.
 
@@ -29,6 +29,48 @@ keyInput: a key changed location and rotatioin change
 mouse drag that changes location and rotation
 grid at center:
 could visually help, a standard thing with CAD design.
+==========================================================
+build 0.9
+
+key bindings:
+select any object, if it is selected, it will turn red
+if you want to deselect it, press 'q'
+w toggles transition on/off (works with mouse motion)
+e toggles rotation on/off (works with mouse motion)
+r toggles scale on/off (does not work with mouse motion)
+
+p is supposed toggle ortho on/off but does not work
+f toggles front view
+t toggles top view.
+l toggles side view
+
+if you selected an object, toggled w, or e,
+mouse motion on x axis will make change to the object.
+
+if you selected an object, toggled w, e, or r
+press 'a' and 'd' will will make changes to the object.（transition, rotation, scale, accordingly)
+
+press right mouse button will open the menu, there are destroy, exit, as in the top menu.
+destroy will attempt to destroy a selected (meaning turning red) object.
+exit will exit the program.
+
+the sub menu contains 3 object, and one input button.
+torus, cylinder, and cube will create a 3d solid object in the scene accordingly, this newly created object can be picked up, just remember to use 'q' a lot.
+
+input function will print out to console and ask you to type in an input file name (without extension).
+any file that was output from this program should be able to be read in as a input.
+
+there is a demo input file key.myobj. type in the name "key" and p ress enter should do the trick.
+
+there is a second window, the control panel, which has 8 radio buttons, you can click on the radio buttons and have the function according to its description.
+there are minor bugs with this program, but they shouldn't affect much.
+
+
+reference:
+//these helped me figure out how to read a file
+reference http://www.cplusplus.com/doc/tutorial/files/
+//reference https://stackoverflow.com/questions/14516915/read-numeric-data-from-a-text-file-in-c
+
 */
 #pragma once
 
@@ -875,37 +917,37 @@ void mouseControl(int button, int state, int x, int y) {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
 		//for testing purposes
-		cout << "this x is : " << x << endl;
-		cout << "this y is : " << y << endl;
+		//cout << "this x is : " << x << endl;
+		//cout << "this y is : " << y << endl;
 		cx = 1;
 		cy = 1;
 		if (x >= 296 && x <= 385 && y >= 70 && y <= 128) {
 			radiobutton = 0;
 			rotation_axis = 'x';
-			glutSetWindow(id1);
-			glutPostRedisplay();
 			glutSetWindow(id3);
+			glutPostRedisplay(); glutPostRedisplay();
+			
 		}
 		else if (x >= 296 && x <= 385 && y >= 140 && y <= 190) {
 			radiobutton = 1;
 			rotation_axis = 'y';
-			glutSetWindow(id1);
-			glutPostRedisplay();
 			glutSetWindow(id3);
+			glutPostRedisplay(); glutPostRedisplay();
+			
 		}
 		else if (x >= 296 && x <= 385 && y >= 200 && y <= 255) {
 			radiobutton = 2;
 			rotation_axis = 'z';
 			glutSetWindow(id1);
 			glutPostRedisplay();
-			glutSetWindow(id3);
+			glutSetWindow(id3); glutPostRedisplay();
 		}
 		else if (x >= 296 && x <= 385 && y >= 265 && y <= 321) {
 			radiobutton = 3;
 			command = 'n';
 			glutSetWindow(id1);
 			glutPostRedisplay();
-			glutSetWindow(id3);
+			glutSetWindow(id3); glutPostRedisplay();
 		}
 
 
@@ -915,19 +957,21 @@ void mouseControl(int button, int state, int x, int y) {
 			command = 'w';
 			glutSetWindow(id1);
 			glutPostRedisplay();
-			
+			glutSetWindow(id3); glutPostRedisplay();
 		}
 		else if (x >= 115 && x <= 189 && y >= 140 && y <= 190) {
 			radiobutton2 = 1;
 			command = 'e';
 			glutSetWindow(id1);
 			glutPostRedisplay();
-			
+			glutSetWindow(id3); glutPostRedisplay();
 		}
 		else if (x >= 115 && x <= 189 && y >= 200 && y <= 255) {
 			radiobutton2 = 2;
 			command = 'r';
 			glutSetWindow(id1);
+			glutPostRedisplay(); 
+			glutSetWindow(id3); 
 			glutPostRedisplay();
 			
 		}
@@ -936,7 +980,8 @@ void mouseControl(int button, int state, int x, int y) {
 			command = 'n';
 			glutSetWindow(id1);
 			glutPostRedisplay();
-			
+			glutSetWindow(id3);
+			glutPostRedisplay();
 		}
 	}
 	glutPostRedisplay();

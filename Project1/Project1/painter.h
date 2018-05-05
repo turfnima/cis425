@@ -177,8 +177,9 @@ public:
 		string ans="";
 		string line[5];
 		//reference:
+		//sprintf_s was not used so it won't be included in reference
 		//http://www.cplusplus.com/reference/cstdio/sprintf_s/
-		//sprintf_s_s buffer
+		//sprintf_s buffer
 		//why did I waste time on this?
 		char *buf = new char[30];
 		line[0] = "shape: " + shape + "\n";
