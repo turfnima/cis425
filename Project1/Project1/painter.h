@@ -41,6 +41,8 @@ public:
 	GLdouble scale[3];
 	//default color, any object with color setting will not be effected
 	GLdouble color[3];
+	int stacks[2];
+	GLdouble radius[2];
 	//constructor
 	//default shape is cube (just for preventing erros)
 	myObj() {
@@ -61,18 +63,22 @@ public:
 				color[0] = .5;
 				color[1] = .5;
 				color[2] = .5;
+				
+				stacks[0] = 0;
+				stacks[1] = 0;
 	}
 	//set the shape of object
 	myObj(string s) {
 		//error prevention
-		if (s != "cube" || s != "cylinder" || s != "cuboid" || s != "sphere") shape = "cube";
+		if (s != "cube" || s != "cylinder" || s != "cuboid" || s != "sphere"|| s!="torus") shape = "cube";
 		shape = s;
 		command = 'n';
 		position[0] = 0;
 		position[1] = 0;
 		position[2] = 0;
 
-		rotation[0] = 0;
+		if (s == "cylinder") rotation[0] = 90;
+		else	rotation[0] = 0;
 		rotation[1] = 0;
 		rotation[2] = 0;
 
@@ -83,6 +89,13 @@ public:
 		color[0] = .5;
 		color[1] = .5;
 		color[2] = .5;
+
+		if (s == "cylinder" ||s =="torus") { 
+			radius[0] = 0.3;
+			radius[1] = 1;
+			stacks[0] = 15;
+			stacks[1] = 15;
+		}
 	}
 	~myObj() {};
 	//the object paints itself according to the position
@@ -121,38 +134,7 @@ public:
 		}
 	}
 
-	void addsetter(char command, GLdouble x, GLdouble y, GLdouble z) {
-		//cout << "setter called" << endl;
-		switch (command)
-		{
-		case'w':
-			position[0] += x;
-			position[1] += y;
-			position[2] += z;
-			//cout << "positions: " << position[0] << " " << position[1] << " " << position[3] << endl;
-			break;
-		case'e':
-			//restrain at the 360 angle
-			for (int i = 0; i < 2; i++)
-				if (rotation[i] >= 360)rotation[i] = rotation[i] - 360;
-			rotation[0] += x;
-			rotation[1] += y;
-			rotation[2] += z;
-			break;
-		case'r':
-			//resize can have weird things, because resizing something to negative is funny.
-			scale[0] = x;
-			scale[1] = y;
-			scale[2] = z;
-			break;
-		case'n':
-			break;
-		default:
-			break;
-		}
 	
-	}
-
 	
 
 	//this outputs my shape, position, rotation, and scale, and color
